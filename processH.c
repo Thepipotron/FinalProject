@@ -7,11 +7,13 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <sys/wait.h>
+#include <semaphore.h> 
 
 //this variable contains the coaches 1 means a coach is avalible (on his phone) 0 means he is busy with customer
 #define WAITING_ROOM "/wroom"
 #define COACHES "/trainers"
 #define FIRST "/pointer"
+#define SEM "semname"
 #define MAX_SIZE sizeof(int) * 8
 
 int w;
@@ -99,10 +101,11 @@ int first_cus(int *array, int *first, int size){
 }
 
 
-int customers(int *coaches, int *waiting_room, int *first){
+int customers(int *coaches, int *waiting_room, int *first, sem_t *sema){
 
     int tmp = 0;
 
+    sem_wait(sema);
     int trainer = avalible(coaches,c_size,&tmp);
     
 
@@ -114,7 +117,7 @@ int customers(int *coaches, int *waiting_room, int *first){
         //if no trainer avilible walk back to the waiting room
         sleep(0.1);
         int cust_wait = avalible(waiting_room,w_size, first);
-
+        
 
         //if the waiting room is full
         if(cust_wait == -1){
@@ -125,16 +128,18 @@ int customers(int *coaches, int *waiting_room, int *first){
         printf("Moving customer to waiting room...\n");
         print_info(coaches,waiting_room);
         fflush(stdout);
+        sem_post(sema);
 
         //waiting for a trainer to come get them
         while(waiting_room[cust_wait] == 1);
 
 
-
+        sem_wait(sema);
         //getting the trainer and releasing it to the customer as well as the seat in the waiting room
         trainer = waiting_room[cust_wait] * -1;
-        
+
         waiting_room[cust_wait] = 0;
+        sem_post(sema);
     }
 
     
@@ -143,6 +148,7 @@ int customers(int *coaches, int *waiting_room, int *first){
     printf("Attaching trainer %d to cust\n", trainer);
     print_info(coaches,waiting_room);
     fflush(stdout);
+    sem_post(sema);
 
     //once the trainer gets the customer
 
@@ -153,6 +159,7 @@ int customers(int *coaches, int *waiting_room, int *first){
     //next trainer walks back to the waiting room
     sleep(.05);
 
+    sem_wait(sema);
     //trainer searches for a new customer in the waiting room
     int new_cust = first_cus(waiting_room, first, w_size);
 
@@ -163,13 +170,15 @@ int customers(int *coaches, int *waiting_room, int *first){
     if(new_cust == -1){
         //walking back to the gym
         sleep(.05);
-
+        
 
         //mark trainer as ready
         coaches[trainer] = 0;
+        
         printf("Releasing Trainer #%d\n",trainer);
         print_info(coaches,waiting_room);
         fflush(stdout);
+        sem_post(sema);
         
     }
 
@@ -180,6 +189,7 @@ int customers(int *coaches, int *waiting_room, int *first){
         printf("First: %d\n", *first);
         fflush(stdout);
         waiting_room[new_cust] = trainer * -1;
+        sem_post(sema);
     }
 
 }
@@ -248,12 +258,21 @@ int main(){
     //first initialization of the shared memory space
     ini_ipc(8,8);
 
+    sem_t *sema;
+    if((sema = sem_open(SEM, O_CREAT | O_EXCL, 0644, 1)) < 0 ){
+        perror("error");
+    }
+
 
     //loop that creates custromers, for testing purposes we are just going to create 3 for now
     for(int i = 0; i < 18; i++){
         
         //split of a child proc
-        int pid = fork();
+        int pid;
+
+        if((pid = fork()) < 0){
+            perror("error");
+        }
 
         //execute customer function then leave
         if(pid == 0){
@@ -270,7 +289,7 @@ int main(){
             int fir = shm_open(FIRST, O_RDWR, 0666);
             first = (int*) mmap(0,sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED, fir, 0);
             
-            customers(coaches,waiting_room, first);
+            customers(coaches,waiting_room, first, sema);
 
             exit(0);
             
@@ -320,5 +339,8 @@ int main(){
     shm_unlink(FIRST);
     shm_unlink(COACHES);
     shm_unlink(WAITING_ROOM);
+
+    sem_unlink (SEM);   
+    sem_close(sema); 
 
 }
