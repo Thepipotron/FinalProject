@@ -289,16 +289,17 @@ int deadlockDetection(int process, int temp, int resource, int *allocationTable)
     current[2][5] = allocT_access(0-5,2-4,allocationTable);  // This is the weights currently being used by the Customers
     available[5] = allocT_access(0-5,1,allocationTable);      
 
-    resource = allocationTable;
+    resource = *allocationTable;
 
     for(j = 0; j < resource; j++) { 
-        scanf("%d", &maximum_resources[j]);
+        allocT_change(j,1,j,allocationTable);
     }
 
     for(j = 0; j < process; j++) {
         for(i = 0; i < resource; i++) 
         {
-                scanf("%d", &current[j][i]);
+            int changeRow = 2 + i;
+            allocT_change(i,changeRow,current,allocationTable);
         }
     }
     // Creating the maximum claim 
@@ -430,14 +431,14 @@ int main(){
     ini_ipc(8,8);
 
     int b = fork();
-
+    int weights = allocT_access(0,0,allocationTable);
     if(b == 0){
 
         int act = shm_open(ALLOC, O_RDWR, 0666);
         allocationTable = (int*) mmap(0,sizeof(int) * 8 * 6, PROT_READ | PROT_WRITE, MAP_SHARED, act, 0);
 
 
-        // deadlockDetection();
+        deadlockDetection(c_size, 1, weights, allocationTable);
     }
 
     //loop that creates custromers, for testing purposes we are just going to create 3 for now
@@ -511,7 +512,7 @@ int main(){
 
     for(int i = 0; i < 8; i++){
         for(int j = 0; j < 6; j++){
-            printf("Allocation Table \n %d ",allocT_access(i,j,allocationTable));
+            printf("\n %d ",allocT_access(i,j,allocationTable));
         }
         printf("\n");
     }
