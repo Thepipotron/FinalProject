@@ -139,7 +139,6 @@ int customers(int *coaches, int *waiting_room, int *first, sem_t *sema){
         trainer = waiting_room[cust_wait] * -1;
 
         waiting_room[cust_wait] = 0;
-        sem_post(sema);
     }
 
     
