@@ -265,9 +265,11 @@ int deadlockDetection(int process, int temp, int resource, int *allocationTable)
         // printf( "The Customer is using %d of %s lb weights. \n", amountWeight[i], typeWeight[i]);  old code
     }   
 
-
     int b = 0;
-    int count = 0, i, j;
+    int count = 0;
+    int i;
+    int j;
+
     //The available is the plates not being used
     //The Current is the plates being used
     //The Maximum claim is the maximum plates that can be used **NEED TO CHANGE THIS TO READ FROM THE 2ND COLLUMN
@@ -275,14 +277,14 @@ int deadlockDetection(int process, int temp, int resource, int *allocationTable)
     int maximum_resources[5], running[5], safe_state = 0;
 
     for(int col = 0; col < 6; col++){
-        for(int row; 1 < row < 8; row++){
+        for(int row; 1 < row < 8; row++){       // 
             process = allocT_access(col,row,allocationTable);
         }
     }
     // process = allocT_access(); //Don't know how to implement this part
 
-    for(j = 0; j < process; j++) {
-        running[j] = 1;
+    for(i = 0; i < process; i++) {
+        running[i] = 1;
         count++;
     }
 
@@ -291,52 +293,52 @@ int deadlockDetection(int process, int temp, int resource, int *allocationTable)
 
     resource = *allocationTable;
 
-    for(j = 0; j < resource; j++) { 
-        allocT_change(j,1,j,allocationTable);
+    for(i = 0; i < resource; i++) { 
+        allocT_change(i,1,i,allocationTable);
     }
 
-    for(j = 0; j < process; j++) {
-        for(i = 0; i < resource; i++) 
+    for(i = 0; i < process; i++) {
+        for(j = 0; j < resource; j++) 
         {
-            int changeRow = 2 + i;
+            int changeRow = 2 + j;
             allocT_change(i,changeRow,current,allocationTable);
         }
     }
     // Creating the maximum claim 
-    for(j = 0; j < process; j++) {
-        for(i = 0; i < resource; i++) 
+    for(i = 0; i < process; i++) {
+        for(j = 0; j < resource; j++) 
         {
-                maximum_claim[j][i] = allocT_access(i,1,allocationTable);
+                maximum_claim[i][j] = allocT_access(j,1,allocationTable);
         }
     }
 
-    for(j = 0; j < process; j++) {
-        for(i = 0; i < resource; i++) {
-                allocationTable[i] = allocationTable[i] + current[j][i];
+    for(i = 0; i < process; i++) {
+        for(j = 0; j < resource; j++) {
+                allocationTable[j] = allocationTable[j] + current[i][j];
         }
     }
 
-    for(j = 0; j< resource; j++) {
-        available[j] = maximum_resources[j] - allocationTable[j];
+    for(i = 0; i< resource; i++) {
+        available[i] = maximum_resources[i] - allocationTable[i];
     }
 
     while(count != 0) {
         safe_state = 0;
-        for(j = 0; j < process; j++) {
-                if(running[j]) {
+        for(i = 0; i < process; i++) {
+                if(running[i]) {
                     temp = 1;
                     for(i = 0; i < resource; i++) {
-                            if(maximum_claim[j][i] - current[j][i] > available[i]) {
+                            if(maximum_claim[i][j] - current[i][j] > available[j]) {
                                 temp = 0;
                                 break;
                             }
                     }
                     if(temp) {
-                            running[j] = 0;
+                            running[i] = 0;
                             count--;
                             safe_state = 1;
-                            for(i = 0; i < resource; i++) {
-                                    available[i] = available[i] + current[j][i];
+                            for(j = 0; j < resource; j++) {
+                                    available[j] = available[j] + current[i][j];
                             }
                             break;
                     }
@@ -348,9 +350,9 @@ int deadlockDetection(int process, int temp, int resource, int *allocationTable)
         } 
         else {
                 printf("\nThe processes are running correctly \n");
-                for(j = 0; j < resource; j++) 
+                for(i = 0; i < resource; i++) 
                 {
-                    printf("\t%d", allocT_access(j,1,allocationTable));
+                    printf("\t%d", allocT_access(i,1,allocationTable)); // Prints off how many of the weights are available to show deadlock is not occuring
                 }
                 printf("\n");
         }
