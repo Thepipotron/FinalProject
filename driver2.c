@@ -8,12 +8,14 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <sys/wait.h>
+#include <semaphore.h>
 
 //this variable contains the coaches 1 means a coach is avalible (on his phone) 0 means he is busy with customer
 #define WAITING_ROOM "/wroom"
 #define COACHES "/trainers"
 #define FIRST "/pointer"
 #define ALLOC "/allocation"
+#define SEM "sema"
 #define MAX_SIZE sizeof(int) * 8
 
 int w;
@@ -127,10 +129,11 @@ int first_cus(int *array, int *first, int size){
 //             return 0;
 //       }
 // }
-int customers(int *coaches, int *waiting_room, int *first, int *allocationTable){
+int customers(int *coaches, int *waiting_room, int *first,sem_t *sema, int *allocationTable){
 
     int tmp = 0;
 
+    sem_wait(sema);
     int trainer = avalible(coaches,c_size,&tmp);
 
 
@@ -153,11 +156,12 @@ int customers(int *coaches, int *waiting_room, int *first, int *allocationTable)
         printf("Moving customer to waiting room...\n");
         print_info(coaches,waiting_room);
         fflush(stdout);
+        sem_post(sema);
 
         //waiting for a trainer to come get them
         while(waiting_room[cust_wait] == 1);
 
-
+        sem_wait(sema);
 
         //getting the trainer and releasing it to the customer as well as the seat in the waiting room
         trainer = waiting_room[cust_wait] * -1;
@@ -170,6 +174,7 @@ int customers(int *coaches, int *waiting_room, int *first, int *allocationTable)
     printf("Attaching trainer %d to cust\n", trainer);
     print_info(coaches,waiting_room);
     fflush(stdout);
+    sem_post(sema);
 
     //once the trainer gets the customer
     //The trainer needs to select the amount of sets the Customer will do
@@ -212,6 +217,7 @@ int customers(int *coaches, int *waiting_room, int *first, int *allocationTable)
     //next trainer walks back to the waiting room
     sleep(.05);
 
+    sem_wait(sema);
     //trainer searches for a new customer in the waiting room
     int new_cust = first_cus(waiting_room, first, w_size);
 
@@ -229,6 +235,7 @@ int customers(int *coaches, int *waiting_room, int *first, int *allocationTable)
         printf("Releasing Trainer #%d\n",trainer);
         print_info(coaches,waiting_room);
         fflush(stdout);
+        sem_post(sema);
 
     }
 
@@ -239,6 +246,7 @@ int customers(int *coaches, int *waiting_room, int *first, int *allocationTable)
         printf("First: %d\n", *first);
         fflush(stdout);
         waiting_room[new_cust] = trainer * -1;
+        sem_post(sema);
     }
 }
 
@@ -425,6 +433,12 @@ int main(){
     coaches = malloc(sizeof(int) * MAX_SIZE);
     waiting_room = malloc(sizeof(int) * MAX_SIZE);
 
+    sem_t *sema;
+    if((sema = sem_open(SEM, O_CREAT | O_EXCL, 0644, 1)) < 0 ){
+        perror("error");
+    }
+
+
     int* first = malloc(sizeof(int));
 
     //first initialization of the shared memory space
@@ -439,6 +453,7 @@ int main(){
 
 
         deadlockDetection(c_size, 1, weights, allocationTable);
+        exit(0);
     }
 
     //loop that creates custromers, for testing purposes we are just going to create 3 for now
@@ -465,7 +480,7 @@ int main(){
             int act = shm_open(ALLOC, O_RDWR, 0666);
             allocationTable = (int*) mmap(0,sizeof(int) * 8 * 6, PROT_READ | PROT_WRITE, MAP_SHARED, act, 0);
 
-            customers(coaches,waiting_room, first, allocationTable);
+            customers(coaches,waiting_room, first, sema, allocationTable);
 
             exit(0);
 
@@ -510,9 +525,9 @@ int main(){
 
     printf("\n\n");
 
-    for(int i = 0; i < 8; i++){
-        for(int j = 0; j < 6; j++){
-            printf("\n %d ",allocT_access(i,j,allocationTable));
+    for(int i = 0; i < 6; i++){
+        for(int j = 0; j < 8; j++){
+            printf(" %d ",allocT_access(j,i,allocationTable));
         }
         printf("\n");
     }
@@ -529,5 +544,8 @@ int main(){
     shm_unlink(COACHES);
     shm_unlink(WAITING_ROOM);
     shm_unlink(ALLOC);
+
+    sem_unlink (SEM);   
+    sem_close(sema); 
 
 }
