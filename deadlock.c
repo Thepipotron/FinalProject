@@ -255,6 +255,7 @@ int deadlockDetection(int process, int temp, int resource, int *allocationTable)
     // char* typeWeight[] = {"2.5", "5", "7.5", "10", "12.5", "15"};  This is old code, but will leave in incase I need to use it
     // int amountWeight[6];
     for (int i = 0; i<6; i++){
+        printf("\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
         // setting the the amount of weights in the facility to 10 of each weight type
         //This will change each value in the column to a value of of 1-10 for the weights after the amount and different types
         int rowChange = i + 2; 
@@ -276,6 +277,7 @@ int deadlockDetection(int process, int temp, int resource, int *allocationTable)
 
     for(int col = 0; col < 6; col++){
         for(int row; 1 < row < 8; row++){
+            
             process = allocT_access(col,row,allocationTable);
         }
     }
@@ -320,6 +322,7 @@ int deadlockDetection(int process, int temp, int resource, int *allocationTable)
     }
 
     while(count != 0) {
+        
         safe_state = 0;
         for(j = 0; j < process; j++) {
                 if(running[j]) {

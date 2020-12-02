@@ -288,6 +288,7 @@ int deadlockDetection(int process, int temp, int resource, int *allocationTable)
 
     for(int col = 0; col < 6; col++){
         for(int row = 2; row < 8; row++){       // 
+            
             process = allocT_access(col,row,allocationTable);
         }
     }
@@ -341,10 +342,11 @@ int deadlockDetection(int process, int temp, int resource, int *allocationTable)
 
     while(count != 0) {
         safe_state = 0;
+        
         for(i = 0; i < process; i++) {
                 if(running[i]) {
                     temp = 1;
-                    for(i = 0; i < resource; i++) {
+                    for(int j = 0; j < resource; j++) {
                             if(maximum_claim[i][j] - current[i][j] > available[j]) {
                                 temp = 0;
                                 break;
@@ -354,7 +356,7 @@ int deadlockDetection(int process, int temp, int resource, int *allocationTable)
                             running[i] = 0;
                             count--;
                             safe_state = 1;
-                            for(j = 0; j < resource; j++) {
+                            for(int j = 0; j < resource; j++) {
                                     available[j] = available[j] + current[i][j];
                             }
                             break;
@@ -429,6 +431,13 @@ int ini_ipc(int wroom_size, int trainer_size){
 
 
 int main(){
+
+    shm_unlink(FIRST);
+    shm_unlink(COACHES);
+    shm_unlink(WAITING_ROOM);
+    shm_unlink(ALLOC);
+
+    sem_unlink (SEM);   
 
     //if a coach is avalible 0
     int *coaches;
