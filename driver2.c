@@ -269,15 +269,14 @@ int deadlockDetection(int process, int temp, int resource, int *allocationTable)
         //This will change each value in the column to a value of of 1-10 for the weights after the amount and different types
         // int rowChange = i + 2; 
         // rowChange <= 6;
+        allocT_change(i,1,10,allocationTable);
         for(int j = 2; j<9; j++){
             allocT_change(i,j,(rand() % 10),allocationTable); // This adds how many of each weight the Customer is trying to use
         }
         allocT_change(i,0,(2.5+(i * 2.5)),allocationTable); // This adds the types of weights to the first row column
-        allocT_change(i,1,10,allocationTable);  // This sets the amount of each weight available in the second row column
+          // This sets the amount of each weight available in the second row column
         // printf( "The Customer is using %d of %s lb weights. \n", amountWeight[i], typeWeight[i]);  old code
     }   
-
-    int b = 0;
     int count = 0;
     int i;
     int j;
@@ -289,7 +288,7 @@ int deadlockDetection(int process, int temp, int resource, int *allocationTable)
     int maximum_resources[5], running[5], safe_state = 0;
 
     for(int col = 0; col < 6; col++){
-        for(int row = 2; row < 8; row++){       // 
+        for(int row = 2; row < 8; row++){       
             
             process = allocT_access(col,row,allocationTable);
         }
