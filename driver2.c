@@ -1,3 +1,5 @@
+
+
 #include <stdio.h>
 #include<stdlib.h>
 #include<stdio.h>
@@ -301,7 +303,7 @@ int deadlockDetection(int process, int temp, int resource, int *allocationTable)
 
     // This is the weights currently being used by the Customers
     for(i = 0; i < 6; i++){
-        for(j = 2;j < 5; j++){
+        for(j = 2; j < 5; j++){
             current[2][5] = allocT_access(i,j,allocationTable);
         }
     }
@@ -310,7 +312,7 @@ int deadlockDetection(int process, int temp, int resource, int *allocationTable)
         available[5] = allocT_access(i,1,allocationTable);
     }
           
-    resource = *allocationTable;
+    // resource = *allocationTable;
 
     for(i = 0; i < resource; i++) { 
         allocT_change(i,1,i,allocationTable);
