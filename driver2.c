@@ -281,11 +281,11 @@ int deadlockDetection(int process, int temp, int resource, int *allocationTable)
     //The available is the plates not being used
     //The Current is the plates being used
     //The Maximum claim is the maximum plates that can be used **NEED TO CHANGE THIS TO READ FROM THE 2ND COLLUMN
-    int available[j], current[j][i], maximum_claim[1][5]; // Need to 
+    int available[5], current[2][5], maximum_claim[1][5]; // Need to 
     int maximum_resources[5], running[5], safe_state = 0;
 
     for(int col = 0; col < 6; col++){
-        for(int row; 1 < row < 8; row++){       // 
+        for(int row = 2; row < 8; row++){       // 
             process = allocT_access(col,row,allocationTable);
         }
     }
@@ -296,9 +296,17 @@ int deadlockDetection(int process, int temp, int resource, int *allocationTable)
         count++;
     }
 
-    current[2][5] = allocT_access(0-5,2-4,allocationTable);  // This is the weights currently being used by the Customers
-    available[5] = allocT_access(0-5,1,allocationTable);      
+    // This is the weights currently being used by the Customers
+    for(i = 0; i < 6; i++){
+        for(j = 2;j < 5; j++){
+            current[2][5] = allocT_access(i,j,allocationTable);
+        }
+    }
 
+    for(i = 0; i < 6; i++){
+        available[5] = allocT_access(i,1,allocationTable);
+    }
+          
     resource = *allocationTable;
 
     for(i = 0; i < resource; i++) { 
