@@ -277,15 +277,14 @@ int deadlockDetection(int process, int temp, int resource, int *allocationTable)
           // This sets the amount of each weight available in the second row column
         // printf( "The Customer is using %d of %s lb weights. \n", amountWeight[i], typeWeight[i]);  old code
     }   
-    int count = 0;
-    int i;
-    int j;
 
     //The available is the plates not being used
     //The Current is the plates being used
     //The Maximum claim is the maximum plates that can be used **NEED TO CHANGE THIS TO READ FROM THE 2ND COLLUMN
     int available[5], current[2][5], maximum_claim[1][5]; // Need to 
-    int maximum_resources[5], running[5], safe_state = 0;
+    int maximum_resources[5], safe_state = 0; 
+    int count = 0;
+    int i, j;
 
     for(int col = 0; col < 6; col++){
         for(int row = 2; row < 8; row++){       
@@ -294,12 +293,6 @@ int deadlockDetection(int process, int temp, int resource, int *allocationTable)
         }
     }
     // process = allocT_access(); //Don't know how to implement this part
-
-    for(i = 0; i < process; i++) {
-        running[i] = 1;
-        count++;
-    }
-
     // This is the weights currently being used by the Customers
     for(i = 0; i < 6; i++){
         for(j = 2; j < 5; j++){
@@ -343,7 +336,7 @@ int deadlockDetection(int process, int temp, int resource, int *allocationTable)
 
     while(count != 0) {
         safe_state = 0;
-        
+        int running[5];
         for(i = 0; i < process; i++) {
                 if(running[i]) {
                     temp = 1;
