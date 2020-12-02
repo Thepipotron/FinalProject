@@ -33,12 +33,12 @@ int w_size;
  * 
  */
 int allocT_access(int col, int row, int* arr){
-    int final = col + row * 6;
+    int final = row + col * 6;
     return arr[final];
 }
 
 void allocT_change(int col, int row,int to, int* arr){
-    int final = col + row * 6;
+    int final = row + col * 6;
     arr[final] = to;
 }
 
@@ -265,9 +265,11 @@ int deadlockDetection(int process, int temp, int resource, int *allocationTable)
     for (int i = 0; i<6; i++){
         // setting the the amount of weights in the facility to 10 of each weight type
         //This will change each value in the column to a value of of 1-10 for the weights after the amount and different types
-        int rowChange = i + 2; 
-        rowChange <= 6;
-        allocT_change(i,rowChange,(rand() % 10),allocationTable); // This adds how many of each weight the Customer is trying to use
+        // int rowChange = i + 2; 
+        // rowChange <= 6;
+        for(int j = 2; i<7; i++){
+            allocT_change(i,j,(rand() % 10),allocationTable); // This adds how many of each weight the Customer is trying to use
+        }
         allocT_change(i,0,(2.5+(i * 2.5)),allocationTable); // This adds the types of weights to the first row column
         allocT_change(i,1,10,allocationTable);  // This sets the amount of each weight available in the second row column
         // printf( "The Customer is using %d of %s lb weights. \n", amountWeight[i], typeWeight[i]);  old code
@@ -312,12 +314,11 @@ int deadlockDetection(int process, int temp, int resource, int *allocationTable)
     for(i = 0; i < resource; i++) { 
         allocT_change(i,1,i,allocationTable);
     }
-
+    // change the current weights being used
     for(i = 0; i < process; i++) {
-        for(j = 0; j < resource; j++) 
-        {
-            int changeRow = 2 + j;
-            allocT_change(i,changeRow,current,allocationTable);
+        for(j = 2; j < resource; j++) 
+        {;
+            allocT_change(i,j,current[j][i],allocationTable);
         }
     }
     // Creating the maximum claim 
@@ -459,10 +460,10 @@ int main(){
     if(b == 0){
 
         int act = shm_open(ALLOC, O_RDWR, 0666);
-        allocationTable = (int*) mmap(0,sizeof(int) * 8 * 6, PROT_READ | PROT_WRITE, MAP_SHARED, act, 0);
+        allocationTable = (int*) mmap(0,sizeof(int) * 6 * 8, PROT_READ | PROT_WRITE, MAP_SHARED, act, 0);
 
 
-        deadlockDetection(c_size, 1, weights, allocationTable);
+        deadlockDetection(c_size, 1, weights, allocationTable); //when adding this value, the program does not stop running
         exit(0);
     }
 
@@ -513,7 +514,7 @@ int main(){
     first = (int*) mmap(0,sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED, fir, 0);
 
     int act = shm_open(ALLOC, O_RDWR, 0666);
-    allocationTable = (int*) mmap(0,sizeof(int) * 8 * 6, PROT_READ | PROT_WRITE, MAP_SHARED, act, 0);
+    allocationTable = (int*) mmap(0,sizeof(int) * 6 * 8, PROT_READ | PROT_WRITE, MAP_SHARED, act, 0);
 
     int status = 0;
 
@@ -535,8 +536,8 @@ int main(){
 
     printf("\n\n");
 
-    for(int i = 0; i < 6; i++){
-        for(int j = 0; j < 8; j++){
+    for(int i = 0; i < 8; i++){
+        for(int j = 0; j < 6; j++){
             printf(" %d ",allocT_access(j,i,allocationTable));
         }
         printf("\n");
